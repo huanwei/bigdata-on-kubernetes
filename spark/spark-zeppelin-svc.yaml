@@ -6,7 +6,6 @@ metadata:
   name: zeppelin
   namespace: default
 spec:
-  clusterIP: 10.104.183.61
   externalTrafficPolicy: Cluster
   ports:
   - name: http

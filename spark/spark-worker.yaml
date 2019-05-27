@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     component: spark-worker
-  name: spark-1558944340-worker
+  name: worker
   namespace: default
 spec:
   replicas: 3

@@ -7,7 +7,6 @@ metadata:
   name: yarn-ui
   namespace: default
 spec:
-  clusterIP: 10.109.207.85
   ports:
   - name: web
     port: 8088

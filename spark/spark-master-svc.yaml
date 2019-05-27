@@ -6,7 +6,6 @@ metadata:
   name: master
   namespace: default
 spec:
-  clusterIP: 10.110.172.64
   ports:
   - port: 7077
     protocol: TCP
