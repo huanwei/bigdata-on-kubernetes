@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    component: zeppelin
+  name: zeppelin
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: zeppelin
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        component: zeppelin
+    spec:
+      containers:
+      - env:
+        - name: SPARK_MASTER
+          value: spark://master:7077
+        image: apache/zeppelin:0.7.3
+        imagePullPolicy: IfNotPresent
+        name: zeppelin
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

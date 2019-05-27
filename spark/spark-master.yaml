@@ -1,0 +1,52 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    component: spark-master
+  name: master
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: spark-master
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        component: spark-master
+    spec:
+      containers:
+      - args:
+        - echo $(hostname -i) master >> /etc/hosts; /opt/spark/bin/spark-class
+          org.apache.spark.deploy.master.Master
+        command:
+        - /bin/sh
+        - -c
+        env:
+        - name: SPARK_DAEMON_MEMORY
+          value: 1g
+        - name: SPARK_MASTER_HOST
+          value: master
+        - name: SPARK_MASTER_PORT
+          value: "7077"
+        - name: SPARK_MASTER_WEBUI_PORT
+          value: "8080"
+        image: k8s.gcr.io/spark:1.5.1_v3
+        imagePullPolicy: IfNotPresent
+        name: master
+        ports:
+        - containerPort: 7077
+          protocol: TCP
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

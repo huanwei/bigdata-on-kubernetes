@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: hadoop
+    component: yarn-nm
+  name: yarn-nm
+  namespace: default
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: hadoop
+      component: yarn-nm
+  serviceName: yarn-nm
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: yarn-nm
+        release: original-molly
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: hadoop
+                  component: yarn-nm
+              topologyKey: kubernetes.io/hostname
+            weight: 5
+      containers:
+      - command:
+        - /bin/bash
+        - /tmp/hadoop-config/bootstrap.sh
+        - -d
+        env:
+        - name: MY_CPU_LIMIT
+          valueFrom:
+            resourceFieldRef:
+              containerName: yarn-nm
+              divisor: "1"
+              resource: limits.cpu
+        - name: MY_MEM_LIMIT
+          valueFrom:
+            resourceFieldRef:
+              containerName: yarn-nm
+              divisor: 1M
+              resource: limits.memory
+        image: danisla/hadoop:2.9.0
+        imagePullPolicy: IfNotPresent
+        name: yarn-nm
+        ports:
+        - containerPort: 8088
+          name: web
+          protocol: TCP
+#        livenessProbe:
+#          failureThreshold: 3
+#          httpGet:
+#            path: /node
+#            port: 8042
+#            scheme: HTTP
+#          initialDelaySeconds: 10
+#          periodSeconds: 10
+#          successThreshold: 1
+#          timeoutSeconds: 2
+#        readinessProbe:
+#          failureThreshold: 3
+#          httpGet:
+#            path: /node
+#            port: 8042
+#            scheme: HTTP
+#          initialDelaySeconds: 10
+#          periodSeconds: 10
+#          successThreshold: 1
+#          timeoutSeconds: 2
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2Gi
+          requests:
+            cpu: "1"
+            memory: 2Gi
+        volumeMounts:
+        - mountPath: /tmp/hadoop-config
+          name: hadoop-config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: hadoop
+        name: hadoop-config
+  updateStrategy:
+    type: OnDelete

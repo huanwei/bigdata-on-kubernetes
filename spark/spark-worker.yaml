@@ -1,0 +1,46 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    component: spark-worker
+  name: spark-1558944340-worker
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      component: spark-worker
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        component: spark-worker
+    spec:
+      containers:
+      - command:
+        - /opt/spark/bin/spark-class
+        - org.apache.spark.deploy.worker.Worker
+        - spark://master:7077
+        env:
+        - name: SPARK_DAEMON_MEMORY
+          value: 1g
+        - name: SPARK_WORKER_MEMORY
+          value: 1g
+        - name: SPARK_WORKER_WEBUI_PORT
+          value: "8080"
+        image: k8s.gcr.io/spark:1.5.1_v3
+        imagePullPolicy: IfNotPresent
+        name: worker
+        ports:
+        - containerPort: 8081
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

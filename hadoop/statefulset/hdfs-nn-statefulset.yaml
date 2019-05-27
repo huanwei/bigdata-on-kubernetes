@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: hadoop
+    component: hdfs-nn
+  name: hdfs-nn
+  namespace: default
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: hadoop
+      component: hdfs-nn
+  serviceName: hdfs-nn
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: hdfs-nn
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: hadoop
+                  component: hdfs-nn
+              topologyKey: kubernetes.io/hostname
+            weight: 5
+      containers:
+      - command:
+        - /bin/bash
+        - /tmp/hadoop-config/bootstrap.sh
+        - -d
+        image: danisla/hadoop:2.9.0
+        imagePullPolicy: IfNotPresent
+        name: hdfs-nn
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 50070
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 50070
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2Gi
+          requests:
+            cpu: 10m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /tmp/hadoop-config
+          name: hadoop-config
+        - mountPath: /root/hdfs/namenode
+          name: dfs
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: hadoop
+        name: hadoop-config
+      - emptyDir: {}
+        name: dfs
+  updateStrategy:
+    type: OnDelete

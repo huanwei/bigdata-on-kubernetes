@@ -1,0 +1,14 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    app: hadoop
+    component: yarn-nm
+  name: yarn-nm
+  namespace: default
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: hadoop
+      component: yarn-nm

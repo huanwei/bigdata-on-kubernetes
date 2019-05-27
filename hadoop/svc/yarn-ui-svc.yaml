@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hadoop
+    component: yarn-ui
+  name: yarn-ui
+  namespace: default
+spec:
+  clusterIP: 10.109.207.85
+  ports:
+  - name: web
+    port: 8088
+    protocol: TCP
+    targetPort: 8088
+  selector:
+    app: hadoop
+    component: yarn-rm
+  sessionAffinity: None
+  type: ClusterIP

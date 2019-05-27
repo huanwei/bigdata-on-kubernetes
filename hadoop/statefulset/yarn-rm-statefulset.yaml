@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: hadoop
+    component: yarn-rm
+  name: yarn-rm
+  namespace: default
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: hadoop
+      component: yarn-rm
+  serviceName: yarn-rm
+  template:
+    metadata:
+      labels:
+        app: hadoop
+        component: yarn-rm
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: hadoop
+                  component: yarn-rm
+              topologyKey: kubernetes.io/hostname
+            weight: 5
+      containers:
+      - command:
+        - /bin/bash
+        - /tmp/hadoop-config/bootstrap.sh
+        - -d
+        image: danisla/hadoop:2.9.0
+        imagePullPolicy: IfNotPresent
+        name: yarn-rm
+        ports:
+        - containerPort: 8088
+          name: web
+          protocol: TCP
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ws/v1/cluster/info
+            port: 8088
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ws/v1/cluster/info
+            port: 8088
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2Gi
+          requests:
+            cpu: 10m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /tmp/hadoop-config
+          name: hadoop-config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: hadoop
+        name: hadoop-config
+  updateStrategy:
+    type: OnDelete
