@@ -162,3 +162,28 @@ Total jobs:1
 ```
 
 
+### 6. check hadoop ui:
+```
+1) check yarn-rm ui:
+[root@10 ~]# kubectl port-forward hdfs-nn-0 8088:8088
+
+or visit by ingress controller:
+[root@10 ~]# curl http://10.1.10.102:33001/cluster
+
+visit: http://58.16.78.136:11111/cluster
+
+
+2) check hdfs-nn ui:
+[root@10 ~]# kubectl port-forward hdfs-nn-0 50070:50070
+
+or visit via ingress controller:
+[root@10 ~]# curl http://10.1.10.102:33002/dfshealth.html
+
+visit: http://58.16.78.136:11112/dfshealth.html#tab-overview
+
+3) check hdfs-dn ui:
+[root@10 ~]# kubectl port-forward hdfs-dn-0 50075:50075
+
+or visit via ingress controller:
+[root@10 ~]# curl http://10.1.10.102:33003/datanode.html
+```
